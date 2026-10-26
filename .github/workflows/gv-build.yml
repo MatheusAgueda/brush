@@ -1,0 +1,32 @@
+# Builds the headless brush-cli for the GV splat trainers (team Macs + Windows PCs). Push to gv-build to run.
+name: gv-build
+on:
+  push:
+    branches: [gv-build]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            target: aarch64-apple-darwin
+            exe: brush-cli
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            exe: brush-cli.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          lfs: true
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.95.0
+      - run: cargo build --release --locked -p brush-cli
+      - uses: actions/upload-artifact@v7
+        with:
+          name: brush-cli-${{ matrix.target }}
+          path: target/release/${{ matrix.exe }}
+          retention-days: 30
